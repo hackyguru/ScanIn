@@ -1,4 +1,4 @@
-package com.example.scanin
+package com.cybrin.scanin
 
 import io.flutter.embedding.android.FlutterActivity
 

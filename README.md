@@ -1,4 +1,4 @@
-# scanin
+# ScanIn
 
 A new Flutter project.
 
