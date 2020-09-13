@@ -23,6 +23,8 @@ class ViewDocument extends StatefulWidget {
 }
 
 class _ViewDocumentState extends State<ViewDocument> {
+  List<Map<String, dynamic>> imageDirectories = [];
+
   File imageFile;
   Future<bool> _onBackPressed() async {
     return (Navigator.push(
@@ -122,17 +124,17 @@ class _ViewDocumentState extends State<ViewDocument> {
       child: WillPopScope(
         onWillPop: _onBackPressed,
         child: Scaffold(
-            backgroundColor: primaryColor,
+            backgroundColor: Color(4280033838),
             appBar: AppBar(
               elevation: 0,
               centerTitle: true,
-              backgroundColor: primaryColor,
+              backgroundColor: Color(4280033838),
               leading: IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => DocIt()),
+                      MaterialPageRoute(builder: (context) => Home()),
                       (route) => false);
                 },
               ),
@@ -185,7 +187,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                                   ),
                                 );
                               });
-                        })),  
+                        })),
                 Padding(
                   padding: EdgeInsets.only(top: 230, left: 15),
                   child: GestureDetector(
@@ -211,8 +213,9 @@ class _ViewDocumentState extends State<ViewDocument> {
                       width: 150,
                       height: 30,
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(7),
-                          color: Colors.white),
+                        borderRadius: BorderRadius.circular(7),
+                        color: Colors.white,
+                      ),
                       child: Text(
                         "View PDF",
                         textAlign: TextAlign.center,
@@ -410,7 +413,8 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(20),
-                                                          color: Colors.white),
+                                                          color: Color(
+                                                              4280824901)),
                                                       child: Padding(
                                                           padding:
                                                               EdgeInsets.only(
@@ -424,11 +428,14 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                 color: Colors
                                                                     .orange,
                                                               ),
+                                                              SizedBox(
+                                                                height: 7,
+                                                              ),
                                                               Text(
                                                                 "Share PDF",
                                                                 style: TextStyle(
                                                                     color: Colors
-                                                                        .black,
+                                                                        .white,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold),
@@ -464,7 +471,8 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(20),
-                                                          color: Colors.white),
+                                                          color: Color(
+                                                              4280824901)),
                                                       child: Padding(
                                                           padding:
                                                               EdgeInsets.only(
@@ -477,11 +485,14 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                 color: Colors
                                                                     .orange,
                                                               ),
+                                                              SizedBox(
+                                                                height: 7,
+                                                              ),
                                                               Text(
                                                                 "Add a Photo",
                                                                 style: TextStyle(
                                                                     color: Colors
-                                                                        .black,
+                                                                        .white,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold),
@@ -588,7 +599,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                             Text(
                                                                           displayText,
                                                                           style: TextStyle(
-                                                                              color: Colors.white,
+                                                                              color: Color(4280824901),
                                                                               fontSize: 12),
                                                                         ),
                                                                       )));
@@ -613,7 +624,8 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(20),
-                                                          color: Colors.white),
+                                                          color: Color(
+                                                              4280824901)),
                                                       child: Padding(
                                                           padding:
                                                               EdgeInsets.only(
@@ -628,13 +640,13 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                     .orange,
                                                               ),
                                                               SizedBox(
-                                                                height: 2,
+                                                                height: 7,
                                                               ),
                                                               Text(
                                                                 " Save to Device",
                                                                 style: TextStyle(
                                                                     color: Colors
-                                                                        .black,
+                                                                        .white,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold),
@@ -660,7 +672,8 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(20),
-                                                          color: Colors.white),
+                                                          color: Color(
+                                                              4280824901)),
                                                       child: Padding(
                                                           padding:
                                                               EdgeInsets.only(
@@ -673,11 +686,14 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                 color: Colors
                                                                     .orange,
                                                               ),
+                                                              SizedBox(
+                                                                height: 7,
+                                                              ),
                                                               Text(
-                                                                "Share as Image",
+                                                                "Share Image",
                                                                 style: TextStyle(
                                                                     color: Colors
-                                                                        .black,
+                                                                        .white,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold),
@@ -753,7 +769,8 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(20),
-                                                          color: Colors.white),
+                                                          color: Color(
+                                                              4280824901)),
                                                       child: Padding(
                                                           padding:
                                                               EdgeInsets.only(
@@ -765,6 +782,9 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                 size: 40,
                                                                 color: Colors
                                                                     .redAccent,
+                                                              ),
+                                                              SizedBox(
+                                                                height: 7,
                                                               ),
                                                               Text(
                                                                 "Delete All",
@@ -813,4 +833,3 @@ String dirName;
 String fileName;
 
 bool statusSuccess;
-List<Map<String, dynamic>> imageDirectories = [];

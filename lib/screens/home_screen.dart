@@ -1,11 +1,12 @@
 import 'package:example/screens/scan_document.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:flutter_screen_lock/lock_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'view_document.dart';
 import 'scandoc_fromgal.dart';
+import 'view_document.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +34,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<Map<String, dynamic>> imageDirectories = [];
-  var imageDirPaths = [];
-  var imageCount = 0;
-
   Color primaryColor = Color(0xFF333333);
   Color secondaryColor = Color(0xFFf37121);
+
+  Future<bool> _requestPermission() async {
+    final PermissionHandler _permissionHandler = PermissionHandler();
+    var result =
+        await _permissionHandler.requestPermissions([PermissionGroup.storage]);
+    if (result[PermissionGroup.storage] == PermissionStatus.granted) {
+      return true;
+    }
+    return false;
+  }
 
   void askPermission() async {
     await _requestPermission();
@@ -59,16 +66,6 @@ class _HomeState extends State<Home> {
 
   void getData() {
     _onRefresh();
-  }
-
-  Future<bool> _requestPermission() async {
-    final PermissionHandler _permissionHandler = PermissionHandler();
-    var result =
-        await _permissionHandler.requestPermissions([PermissionGroup.storage]);
-    if (result[PermissionGroup.storage] == PermissionStatus.granted) {
-      return true;
-    }
-    return false;
   }
 
   @override
@@ -132,8 +129,8 @@ class _HomeState extends State<Home> {
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: 2,
-                                        crossAxisSpacing: 2.0,
-                                        mainAxisSpacing: 4.0),
+                                        crossAxisSpacing: 10.0,
+                                        mainAxisSpacing: 10.0),
                                 itemBuilder: (context, index) {
                                   folderName = imageDirectories[index]['path']
                                       .substring(
@@ -145,18 +142,30 @@ class _HomeState extends State<Home> {
                                               1);
                                   return GestureDetector(
                                     onTap: () {
-                                      getDirectoryNames();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ViewDocument(
-                                            dirPath: imageDirectories[index]
-                                                ['path'],
-                                          ),
-                                        ),
-                                      ).whenComplete(() => () {
-                                            print('Completed');
-                                          });
+                                      showLockScreen(
+                                        context: context,
+                                        correctString: '1234',
+                                        onCompleted: (context, result) {
+                                          // if you specify this callback,
+                                          // you must close the screen yourself
+                                          Navigator.of(context).maybePop();
+                                        },
+                                        onUnlocked: () {
+                                          getDirectoryNames();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ViewDocument(
+                                                dirPath: imageDirectories[index]
+                                                    ['path'],
+                                              ),
+                                            ),
+                                          ).whenComplete(() => () {
+                                                print('Completed');
+                                              });
+                                        },
+                                      );
                                     },
                                     child: Container(
                                       height: 320,
@@ -271,34 +280,38 @@ class _HomeState extends State<Home> {
       ],
     );
   }
-
-  Future getDirectoryNames() async {
-    Directory appDir = await getExternalStorageDirectory();
-    Directory appDirPath = Directory("${appDir.path}");
-    appDirPath
-        .list(recursive: false, followLinks: false)
-        .listen((FileSystemEntity entity) {
-      String path = entity.path;
-      if (!imageDirPaths.contains(path) &&
-          path !=
-              '/storage/emulated/0/Android/data/com.cybrin.scanin/files/Pictures') {
-        imageDirPaths.add(path);
-        Directory(path)
-            .list(recursive: false, followLinks: false)
-            .listen((FileSystemEntity entity) {
-          imageCount++;
-        });
-        FileStat fileStat = FileStat.statSync(path);
-        imageDirectories.add({
-          'path': path,
-          'modified': fileStat.modified,
-          'size': fileStat.size,
-          'count': imageCount
-        });
-      }
-      imageDirectories.sort((a, b) => a['modified'].compareTo(b['modified']));
-      imageDirectories = imageDirectories.reversed.toList();
-    });
-    return imageDirectories;
-  }
 }
+
+var imageDirPaths = [];
+var imageCount = 0;
+Future getDirectoryNames() async {
+  Directory appDir = await getExternalStorageDirectory();
+  Directory appDirPath = Directory("${appDir.path}");
+  appDirPath
+      .list(recursive: false, followLinks: false)
+      .listen((FileSystemEntity entity) {
+    String path = entity.path;
+    if (!imageDirPaths.contains(path) &&
+        path !=
+            '/storage/emulated/0/Android/data/com.cybrin.scanin/files/Pictures') {
+      imageDirPaths.add(path);
+      Directory(path)
+          .list(recursive: false, followLinks: false)
+          .listen((FileSystemEntity entity) {
+        imageCount++;
+      });
+      FileStat fileStat = FileStat.statSync(path);
+      imageDirectories.add({
+        'path': path,
+        'modified': fileStat.modified,
+        'size': fileStat.size,
+        'count': imageCount,
+      });
+    }
+    imageDirectories.sort((a, b) => a['modified'].compareTo(b['modified']));
+    imageDirectories = imageDirectories.reversed.toList();
+  });
+  return imageDirectories;
+}
+
+List<Map<String, dynamic>> imageDirectories = [];

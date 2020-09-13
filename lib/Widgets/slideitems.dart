@@ -43,7 +43,7 @@ class SlideItem extends StatelessWidget {
         GestureDetector(
           onTap: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => DocIt()));
+                context, MaterialPageRoute(builder: (context) => Home()));
           },
           child: Padding(
               padding: EdgeInsets.only(top: 450, left: 270),

@@ -87,7 +87,7 @@ class _ScanDocumentState extends State<ScanDocument> {
                   onPressed: () => {
                     Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => DocIt()),
+                        MaterialPageRoute(builder: (context) => Home()),
                         (route) => false)
                   },
                   child: Text(

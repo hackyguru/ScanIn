@@ -94,7 +94,7 @@ class _SelectGalState extends State<SelectGal> {
                   onPressed: () => {
                     Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => DocIt()),
+                        MaterialPageRoute(builder: (context) => Home()),
                         (route) => false)
                   },
                   child: Text(

@@ -37,7 +37,6 @@ class _OpenScanState extends State<OpenScan> {
       initialRoute: Screen.route,
       routes: {
         Screen.route: (context) => Screen(),
-        DocIt.route: (context) => DocIt(),
         ViewDocument.route: (context) => ViewDocument(),
         PDFScreen.route: (context) => PDFScreen(),
         ScanDocument.route: (context) => ScanDocument(),
