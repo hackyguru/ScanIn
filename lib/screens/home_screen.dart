@@ -71,17 +71,15 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-
     String folderName;
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: Colors.orange,
           body: Stack(
             overflow: Overflow.clip,
             children: [
               Container(
-                height: 200,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                       colors: [Color(4294214946), Color(4292963586)],
@@ -90,10 +88,16 @@ class _HomeState extends State<Home> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 160.4),
+                  padding: EdgeInsets.only(top: 20, left: 120),
+                  child: Image.asset(
+                    "assets/top.png",
+                    height: 150,
+                  )),
+              Padding(
+                padding: EdgeInsets.only(top: 185.4),
                 child: Container(
                   alignment: Alignment.center,
-                  height: 523,
+                  height: 500,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(20),
@@ -103,10 +107,10 @@ class _HomeState extends State<Home> {
                   child: Column(
                     children: [
                       SizedBox(
-                        height: 30,
+                        height: 20,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 50, right: 150),
+                        padding: const EdgeInsets.only(top: 30, right: 150),
                         child: Text(
                           'Recent Documents',
                           style: TextStyle(
@@ -177,10 +181,19 @@ class _HomeState extends State<Home> {
                                                 BorderRadius.circular(20)),
                                         child: Column(
                                           children: [
-                                            Icon(
-                                              Icons.landscape,
-                                              size: 90,
-                                              color: Colors.orangeAccent[700],
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(top:8),
+                                              child: Image.asset(
+                                                "assets/pd.png",
+                                                height: 70,
+                                                
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 2,
                                             ),
                                             Padding(
                                               padding:
@@ -189,7 +202,7 @@ class _HomeState extends State<Home> {
                                                 children: [
                                                   Container(
                                                     width: 150,
-                                                    height: 51,
+                                                    height: 53,
                                                     child: Text(folderName,
                                                         textAlign:
                                                             TextAlign.center,
@@ -233,7 +246,7 @@ class _HomeState extends State<Home> {
         Row(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 130, left: 230),
+              padding: const EdgeInsets.only(top: 150, left: 230),
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(context,
@@ -254,7 +267,7 @@ class _HomeState extends State<Home> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 130, left: 20),
+              padding: const EdgeInsets.only(top: 150, left: 20),
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(context,

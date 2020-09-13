@@ -11,6 +11,7 @@ import 'package:example/Utilities/constants.dart';
 import 'package:example/Utilities/cropper.dart';
 import 'package:example/Utilities/file_operations.dart';
 import 'package:example/screens/home_screen.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'view_document.dart';
 
@@ -36,7 +37,7 @@ class _ScanDocumentState extends State<ScanDocument> {
 
   ///image=imagefile;
   Future createImagefromcamera() async {
-    File image = File(await EdgeDetection.detectEdge);
+    File image = await ImagePicker.pickImage(source: ImageSource.camera);
     imageFiles.add(image);
 
     setState(() {});

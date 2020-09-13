@@ -10,6 +10,7 @@ import 'package:example/screens/home_screen.dart';
 import 'package:example/screens/pdf_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_extend/share_extend.dart';
+import 'package:aes_crypt/aes_crypt.dart';
 
 class ViewDocument extends StatefulWidget {
   static String route = "ViewDocument";
@@ -74,6 +75,7 @@ class _ViewDocumentState extends State<ViewDocument> {
   void initState() {
     super.initState();
     fileOperations = FileOperations();
+    main();
     dirName = widget.dirPath;
     getImages();
     fileName =
@@ -112,6 +114,71 @@ class _ViewDocumentState extends State<ViewDocument> {
 
   Future<void> openCamera() async {
     imageFile = File(await EdgeDetection.detectEdge);
+  }
+
+  void main() async {
+    Directory storedDirectory = await getApplicationDocumentsDirectory();
+    String encFilepath;
+
+    // The file to be encrypted
+    String srcFilepath = '${storedDirectory.path}/$fileName.pdf';
+
+    print('Unencrypted source file: $srcFilepath');
+    print('File content: ' + File(srcFilepath).readAsStringSync() + '\n');
+
+    // Creates an instance of AesCrypt class.
+    var crypt = AesCrypt();
+    crypt.setPassword("set");
+
+    // Sets encryption password.
+    // Optionally you can specify the password when creating an instance
+    // of AesCrypt class like:
+    // var crypt = AesCrypt('my cool password');
+
+    // Sets overwrite mode.
+    // It's optional. By default the mode is 'AesCryptOwMode.warn'.
+    crypt.setOverwriteMode(AesCryptOwMode.warn);
+
+    try {
+      // Encrypts './example/testfile.txt' file and save encrypted file to a file with
+      // '.aes' extension added. In this case it will be './example/testfile.txt.aes'.
+      // It returns a path to encrypted file.
+      encFilepath =
+          crypt.encryptFileSync('${storedDirectory.path}/$fileName.pdf');
+      print('The encryption has been completed successfully.');
+      print('Encrypted file: $encFilepath');
+    } on AesCryptException catch (e) {
+      // It goes here if overwrite mode set as 'AesCryptFnMode.warn'
+      // and encrypted file already exists.
+      if (e.type == AesCryptExceptionType.destFileExists) {
+        print('The encryption has been completed unsuccessfully.');
+        print(e.message);
+      }
+      return;
+    }
+
+    print('error in ecryption');
+  }
+
+  bool toogleSignature = false;
+  toogleSignatureButton() {
+    setState(() {
+      toogleSignature = !toogleSignature;
+    });
+  }
+
+  bool tooglePassword = false;
+  tooglePasswordButton() {
+    setState(() {
+      tooglePassword = !tooglePassword;
+    });
+  }
+
+  bool toogleWater = false;
+  toogleWaterButton() {
+    setState(() {
+      toogleWater = !toogleWater;
+    });
   }
 
   var imageDirPaths = [];
@@ -154,7 +221,7 @@ class _ViewDocumentState extends State<ViewDocument> {
             body: Stack(
               children: [
                 Padding(
-                    padding: EdgeInsets.only(top: 100, left: 10),
+                    padding: EdgeInsets.only(top: 30, left: 10),
                     child: FutureBuilder(
                         future: getDirectoryNames(),
                         builder:
@@ -189,7 +256,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                               });
                         })),
                 Padding(
-                  padding: EdgeInsets.only(top: 230, left: 15),
+                  padding: EdgeInsets.only(top: 155, left: 15),
                   child: GestureDetector(
                     onTap: () async {
                       statusSuccess = await fileOperations.saveToAppDirectory(
@@ -224,6 +291,240 @@ class _ViewDocumentState extends State<ViewDocument> {
                             fontSize: 17,
                             color: Colors.blue),
                       ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 220, right: 200, left: 15),
+                  child: Container(
+                    width: 150,
+                    height: 40,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Color(4280824901)),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 10, left: 7),
+                          child: Text(
+                            "PDF Sign",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 75),
+                          child: Center(
+                              child: AnimatedContainer(
+                            duration: Duration(milliseconds: 500),
+                            height: 40,
+                            width: 150,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: toogleSignature
+                                    ? Colors.greenAccent[100]
+                                    : Colors.redAccent[100].withOpacity(0.5)),
+                            child: Stack(
+                              children: [
+                                AnimatedPositioned(
+                                  duration: Duration(milliseconds: 500),
+                                  curve: Curves.easeIn,
+                                  top: 3.0,
+                                  left: toogleSignature ? 40.0 : 0,
+                                  right: toogleSignature ? 0 : 40,
+                                  child: InkWell(
+                                    onTap: toogleSignatureButton,
+                                    child: AnimatedSwitcher(
+                                        duration: Duration(milliseconds: 500),
+                                        transitionBuilder: (Widget child,
+                                            Animation<double> animation) {
+                                          return ScaleTransition(
+                                            child: child,
+                                            scale: animation,
+                                          );
+                                        },
+                                        child: Padding(
+                                            padding: EdgeInsets.only(
+                                                top: 2, left: 3),
+                                            child: toogleSignature
+                                                ? Icon(
+                                                    Icons.check_circle_outline,
+                                                    color: Colors.green,
+                                                    size: 30,
+                                                    key: Key("fdshfsj"),
+                                                  )
+                                                : Icon(
+                                                    Icons.remove_circle_outline,
+                                                    color: Colors.red,
+                                                    size: 30,
+                                                    key: Key("Dsddjkkkkhhgygfygy"),
+                                                  ))),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 270, right: 200, left: 15),
+                  child: Container(
+                    width: 150,
+                    height: 40,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Color(4280824901)),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 10, left: 7),
+                          child: Text(
+                            "Pass Pro.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 75),
+                          child: Center(
+                              child: AnimatedContainer(
+                            duration: Duration(milliseconds: 500),
+                            height: 40,
+                            width: 150,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: tooglePassword
+                                    ? Colors.greenAccent[100]
+                                    : Colors.redAccent[100].withOpacity(0.5)),
+                            child: Stack(
+                              children: [
+                                AnimatedPositioned(
+                                  duration: Duration(milliseconds: 500),
+                                  curve: Curves.easeIn,
+                                  top: 3.0,
+                                  left: tooglePassword ? 40.0 : 0,
+                                  right: tooglePassword ? 0 : 40,
+                                  child: InkWell(
+                                    onTap: tooglePasswordButton(),
+                                    child: AnimatedSwitcher(
+                                        duration: Duration(milliseconds: 500),
+                                        transitionBuilder: (Widget child,
+                                            Animation<double> animation) {
+                                          return ScaleTransition(
+                                            child: child,
+                                            scale: animation,
+                                          );
+                                        },
+                                        child: Padding(
+                                            padding: EdgeInsets.only(
+                                                top: 2, left: 3),
+                                            child: tooglePassword
+                                                ? Icon(
+                                                    Icons.check_circle_outline,
+                                                    color: Colors.green,
+                                                    size: 30,
+                                                    key: Key("DEWdsdddesfhakjnsakj"),
+                                                  )
+                                                : Icon(
+                                                    Icons.remove_circle_outline,
+                                                    color: Colors.red,
+                                                    size: 30,
+                                                    key: Key("Dedewdsds"),
+                                                  ))),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 320, right: 200, left: 15),
+                  child: Container(
+                    width: 150,
+                    height: 40,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Color(4280824901)),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 10, left: 0),
+                          child: Text(
+                            "Watermark",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 75),
+                          child: Center(
+                              child: AnimatedContainer(
+                            duration: Duration(milliseconds: 500),
+                            height: 40,
+                            width: 150,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: toogleWater
+                                    ? Colors.greenAccent[100]
+                                    : Colors.redAccent[100].withOpacity(0.5)),
+                            child: Stack(
+                              children: [
+                                AnimatedPositioned(
+                                  duration: Duration(milliseconds: 500),
+                                  curve: Curves.easeIn,
+                                  top: 3.0,
+                                  left: toogleWater ? 40.0 : 0,
+                                  right: toogleWater ? 0 : 40,
+                                  child: InkWell(
+                                    onTap: toogleWaterButton(),
+                                    child: AnimatedSwitcher(
+                                        duration: Duration(milliseconds: 500),
+                                        transitionBuilder: (Widget child,
+                                            Animation<double> animation) {
+                                          return ScaleTransition(
+                                            child: child,
+                                            scale: animation,
+                                          );
+                                        },
+                                        child: Padding(
+                                            padding: EdgeInsets.only(
+                                                top: 2, left: 3),
+                                            child: toogleWater
+                                                ? Icon(
+                                                    Icons.check_circle_outline,
+                                                    color: Colors.green,
+                                                    size: 30,
+                                                    key: Key("fsfs"),
+                                                  )
+                                                : Icon(
+                                                    Icons.remove_circle_outline,
+                                                    color: Colors.red,
+                                                    size: 30,
+                                                    key: Key("dsdsdsd"),
+                                                  ))),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -812,7 +1113,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                       );
                     },
                   ),
-                )
+                ),
               ],
             )),
       ),
