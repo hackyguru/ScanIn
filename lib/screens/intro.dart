@@ -1,76 +1,75 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:example/Utilities/constants.dart';
-import 'package:example/Widgets/slidedots.dart';
-import 'package:example/Widgets/slideitems.dart';
-import 'home_screen.dart';
-import 'package:example/Utilities/slide.dart';
+import 'package:sk_onboarding_screen/flutter_onboarding.dart';
+import 'package:sk_onboarding_screen/sk_onboarding_screen.dart';
 
-class GettingStartedScreen extends StatefulWidget {
-  static String route = 'GettingStarted';
+import 'package:example/screens/pass.dart';
+void main() => runApp(MyApp());
 
-  GettingStartedScreen({this.showSkip});
-
-  final bool showSkip;
-
+class MyApp extends StatelessWidget {
   @override
-  _GettingStartedScreenState createState() => _GettingStartedScreenState();
+  Widget build(BuildContext context) {
+    return MaterialApp(debugShowCheckedModeBanner: false, home: HomePage());
+  }
 }
 
-class _GettingStartedScreenState extends State<GettingStartedScreen> {
-  int _currentPage = 0;
-
-  _onPageChanged(int index) {
-    setState(() {
-      _currentPage = index;
-    });
+class HomePage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return HomePageState();
   }
+}
+
+class HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _globalKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
+    // TODO: implement build
     return Scaffold(
-      backgroundColor: primaryColor,
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: Colors.orange,
-        leading: (!widget.showSkip)
-            ? IconButton(
-                icon: Icon(Icons.arrow_forward),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        title: Text(
-          'How to use the app?',
-          style: TextStyle(
-              fontSize: 18, fontWeight: FontWeight.w500, fontFamily: "space"),
-        ),
-      ),
+      backgroundColor: Color(4280033838),
+      key: _globalKey,
       body: Container(
-        color: primaryColor,
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Stack(
-                alignment: AlignmentDirectional.bottomCenter,
-                children: <Widget>[
-                  Theme(
-                    data: Theme.of(context).copyWith(
-                      accentColor: primaryColor,
-                    ),
-                    child: PageView.builder(
-                      scrollDirection: Axis.horizontal,
-                      onPageChanged: _onPageChanged,
-                      itemCount: slideList.length,
-                      itemBuilder: (ctx, i) => SlideItem(i),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        color: Color(4280033838),
+        child: SKOnboardingScreen(
+          bgColor: Color(4280033838),
+          themeColor: Colors.orange,
+          pages: pages,
+          skipClicked: (value) {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => PasswordSet()),
+                (route) => false);
+          },
+          getStartedClicked: (value) {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => PasswordSet()),
+                (route) => false);
+          },
         ),
       ),
     );
   }
+
+  final pages = [
+    SkOnboardingModel(
+        title: 'Scan a document ',
+        description: 'You can scan a document form  gallery or your camera',
+        titleColor: Colors.orange,
+        descripColor: const Color(0xFF929794),
+        imagePath: 'assets/main1.jpeg'),
+    SkOnboardingModel(
+        title: 'Scanning the document ',
+        description:
+            'You can easily click a photo and then head on to cropping ',
+        titleColor: Colors.orange,
+        descripColor: const Color(0xFF929794),
+        imagePath: 'assets/main2.jpeg'),
+    SkOnboardingModel(
+        title: 'Crop and done',
+        description: 'You can easily crop the documents by moving the edges ',
+        titleColor: Colors.orange,
+        descripColor: const Color(0xFF929794),
+        imagePath: 'assets/main3.jpeg'),
+  ];
 }

@@ -1,12 +1,13 @@
 import 'package:example/screens/scan_document.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:flutter_screen_lock/lock_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'scandoc_fromgal.dart';
 import 'view_document.dart';
+import 'package:flutter_screen_lock/lock_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class DocIt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return MaterialApp(
       home: Home(),
       debugShowCheckedModeBanner: false,
@@ -54,9 +56,10 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    askPermission();
     _onRefresh();
     getData();
+    print("$password");
+    setData();
   }
 
   Future _onRefresh() async {
@@ -68,36 +71,57 @@ class _HomeState extends State<Home> {
     _onRefresh();
   }
 
+  String password;
+  String passkey = "_key_pass";
+
+  setData() {
+    loadpass().then((value) {
+      setState(() {
+        password = value;
+      });
+    });
+  }
+
+  Future<String> loadpass() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    return preferences.getString(passkey);
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+
     String folderName;
-    return Stack(
-      children: [
-        Scaffold(
-          body: Stack(
-            overflow: Overflow.clip,
-            children: [
-              Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Color(4294214946), Color(4292963586)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomCenter),
-                ),
+    return Stack(children: [
+      Scaffold(
+        backgroundColor: Colors.orange,
+        body: Stack(
+          overflow: Overflow.clip,
+          children: [
+            Container(
+              height: size.height * 400,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(4294214946), Color(4292963586)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomCenter),
               ),
-              Padding(
-                  padding: EdgeInsets.only(top: 20, left: 120),
+            ),
+            Padding(
+                padding: EdgeInsets.only(top: 20, left: 120),
+                child: Container(
                   child: Image.asset(
                     "assets/top.png",
                     height: 150,
-                  )),
-              Padding(
+                  ),
+                )),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
                 padding: EdgeInsets.only(top: 185.4),
                 child: Container(
                   alignment: Alignment.center,
-                  height: 500,
+                  height: size.height * 500,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(20),
@@ -107,16 +131,19 @@ class _HomeState extends State<Home> {
                   child: Column(
                     children: [
                       SizedBox(
-                        height: 20,
+                        height: 50,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 30, right: 150),
-                        child: Text(
-                          'Recent Documents',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontFamily: "space"),
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            'Recent Documents',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontFamily: "space"),
+                          ),
                         ),
                       ),
                       Expanded(
@@ -147,29 +174,29 @@ class _HomeState extends State<Home> {
                                   return GestureDetector(
                                     onTap: () {
                                       showLockScreen(
-                                        context: context,
-                                        correctString: '1234',
-                                        onCompleted: (context, result) {
-                                          // if you specify this callback,
-                                          // you must close the screen yourself
-                                          Navigator.of(context).maybePop();
-                                        },
-                                        onUnlocked: () {
-                                          getDirectoryNames();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ViewDocument(
-                                                dirPath: imageDirectories[index]
-                                                    ['path'],
+                                          context: context,
+                                          correctString: password,
+                                          onCompleted: (context, result) {
+                                            // if you specify this callback,
+                                            // you must close the screen yourself
+                                            Navigator.of(context).maybePop();
+                                          },
+                                          onUnlocked: () {
+                                            getDirectoryNames();
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ViewDocument(
+                                                  dirPath:
+                                                      imageDirectories[index]
+                                                          ['path'],
+                                                ),
                                               ),
-                                            ),
-                                          ).whenComplete(() => () {
-                                                print('Completed');
-                                              });
-                                        },
-                                      );
+                                            ).whenComplete(() => () {
+                                                  print('Completed');
+                                                });
+                                          });
                                     },
                                     child: Container(
                                       height: 320,
@@ -181,28 +208,17 @@ class _HomeState extends State<Home> {
                                                 BorderRadius.circular(20)),
                                         child: Column(
                                           children: [
-                                            SizedBox(
-                                              height: 5,
+                                            Icon(
+                                              Icons.landscape,
+                                              size: 65,
+                                              color: Colors.orangeAccent[700],
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.only(top:8),
-                                              child: Image.asset(
-                                                "assets/pd.png",
-                                                height: 70,
-                                                
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 2,
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  EdgeInsets.only(bottom: 20),
+                                              padding: EdgeInsets.only(),
                                               child: Column(
                                                 children: [
                                                   Container(
-                                                    width: 150,
-                                                    height: 53,
+                                                    height: size.height * 0.091,
                                                     child: Text(folderName,
                                                         textAlign:
                                                             TextAlign.center,
@@ -240,14 +256,20 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 150, left: 230),
-              child: GestureDetector(
+      ),
+      Positioned(
+        left: 190,
+        top: 30,
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 120,
+          ),
+          child: Row(
+            children: [
+              GestureDetector(
                 onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => ScanDocument()));
@@ -265,10 +287,10 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 150, left: 20),
-              child: GestureDetector(
+              SizedBox(
+                width: 20,
+              ),
+              GestureDetector(
                 onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SelectGal()));
@@ -287,11 +309,11 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
-      ],
-    );
+      )
+    ]);
   }
 }
 
@@ -326,5 +348,7 @@ Future getDirectoryNames() async {
   });
   return imageDirectories;
 }
+
+bool enablepass = false;
 
 List<Map<String, dynamic>> imageDirectories = [];

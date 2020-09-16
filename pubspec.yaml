@@ -41,9 +41,15 @@ dependencies:
   shared_preferences: ^0.5.7+3
   flutter_speed_dial: ^1.2.5
   edge_detection: ^1.0.5
-  flutter_screen_lock: ^1.2.4
   step_progress_indicator: ^0.2.4+7
   aes_crypt: ^0.1.1
+  image_crop: ^0.3.2
+  sk_onboarding_screen:
+  flutter_screen_lock: ^1.2.4
+
+
+
+
 
 
 
@@ -78,8 +84,11 @@ flutter:
     - assets/sc5.png
     - assets/playstore.png  
     - assets/forward.png
-    - assets/top.png
+    - assets/main1.jpeg
+    - assets/main2.jpeg
+    - assets/main3.jpeg
     - assets/pd.png
+    - assets/top.png
 
 
 

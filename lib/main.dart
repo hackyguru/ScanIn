@@ -40,6 +40,7 @@ class _OpenScanState extends State<OpenScan> {
         ViewDocument.route: (context) => ViewDocument(),
         PDFScreen.route: (context) => PDFScreen(),
         ScanDocument.route: (context) => ScanDocument(),
+        DocIt.route: (context) => DocIt()
       },
     );
   }

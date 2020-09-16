@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:edge_detection/edge_detection.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:example/Utilities/cropper.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:example/screens/home_screen.dart';
 import 'package:example/screens/pdf_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_extend/share_extend.dart';
-import 'package:aes_crypt/aes_crypt.dart';
 
 class ViewDocument extends StatefulWidget {
   static String route = "ViewDocument";
@@ -28,9 +28,8 @@ class _ViewDocumentState extends State<ViewDocument> {
 
   File imageFile;
   Future<bool> _onBackPressed() async {
-    return (Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Home())) ??
-        false);
+    return (Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => Home()), (route) => false));
   }
 
   void getImages() {
@@ -75,7 +74,6 @@ class _ViewDocumentState extends State<ViewDocument> {
   void initState() {
     super.initState();
     fileOperations = FileOperations();
-    main();
     dirName = widget.dirPath;
     getImages();
     fileName =
@@ -112,73 +110,14 @@ class _ViewDocumentState extends State<ViewDocument> {
     return imageDirectories;
   }
 
-  Future<void> openCamera() async {
-    imageFile = File(await EdgeDetection.detectEdge);
-  }
-
-  void main() async {
-    Directory storedDirectory = await getApplicationDocumentsDirectory();
-    String encFilepath;
-
-    // The file to be encrypted
-    String srcFilepath = '${storedDirectory.path}/$fileName.pdf';
-
-    print('Unencrypted source file: $srcFilepath');
-    print('File content: ' + File(srcFilepath).readAsStringSync() + '\n');
-
-    // Creates an instance of AesCrypt class.
-    var crypt = AesCrypt();
-    crypt.setPassword("set");
-
-    // Sets encryption password.
-    // Optionally you can specify the password when creating an instance
-    // of AesCrypt class like:
-    // var crypt = AesCrypt('my cool password');
-
-    // Sets overwrite mode.
-    // It's optional. By default the mode is 'AesCryptOwMode.warn'.
-    crypt.setOverwriteMode(AesCryptOwMode.warn);
-
-    try {
-      // Encrypts './example/testfile.txt' file and save encrypted file to a file with
-      // '.aes' extension added. In this case it will be './example/testfile.txt.aes'.
-      // It returns a path to encrypted file.
-      encFilepath =
-          crypt.encryptFileSync('${storedDirectory.path}/$fileName.pdf');
-      print('The encryption has been completed successfully.');
-      print('Encrypted file: $encFilepath');
-    } on AesCryptException catch (e) {
-      // It goes here if overwrite mode set as 'AesCryptFnMode.warn'
-      // and encrypted file already exists.
-      if (e.type == AesCryptExceptionType.destFileExists) {
-        print('The encryption has been completed unsuccessfully.');
-        print(e.message);
-      }
-      return;
+  Future<dynamic> createImage() async {
+    File image = await fileOperations.openCamera();
+    if (image != null) {
+      Cropper cropper = Cropper();
+      var imageFile = await cropper.cropImage(image);
+      if (imageFile != null) return imageFile;
+      setState(() {});
     }
-
-    print('error in ecryption');
-  }
-
-  bool toogleSignature = false;
-  toogleSignatureButton() {
-    setState(() {
-      toogleSignature = !toogleSignature;
-    });
-  }
-
-  bool tooglePassword = false;
-  tooglePasswordButton() {
-    setState(() {
-      tooglePassword = !tooglePassword;
-    });
-  }
-
-  bool toogleWater = false;
-  toogleWaterButton() {
-    setState(() {
-      toogleWater = !toogleWater;
-    });
   }
 
   var imageDirPaths = [];
@@ -191,6 +130,9 @@ class _ViewDocumentState extends State<ViewDocument> {
       child: WillPopScope(
         onWillPop: _onBackPressed,
         child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            resizeToAvoidBottomPadding: false,
+            key: scaffoldKey,
             backgroundColor: Color(4280033838),
             appBar: AppBar(
               elevation: 0,
@@ -221,8 +163,9 @@ class _ViewDocumentState extends State<ViewDocument> {
             body: Stack(
               children: [
                 Padding(
-                    padding: EdgeInsets.only(top: 30, left: 10),
+                    padding: EdgeInsets.only(top: 100, left: 10),
                     child: FutureBuilder(
+                        key: UniqueKey(),
                         future: getDirectoryNames(),
                         builder:
                             (BuildContext context, AsyncSnapshot snapshot) {
@@ -256,7 +199,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                               });
                         })),
                 Padding(
-                  padding: EdgeInsets.only(top: 155, left: 15),
+                  padding: EdgeInsets.only(top: 250, left: 15),
                   child: GestureDetector(
                     onTap: () async {
                       statusSuccess = await fileOperations.saveToAppDirectory(
@@ -295,239 +238,73 @@ class _ViewDocumentState extends State<ViewDocument> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(top: 220, right: 200, left: 15),
-                  child: Container(
-                    width: 150,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Color(4280824901)),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: 10, left: 7),
-                          child: Text(
-                            "PDF Sign",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 75),
-                          child: Center(
-                              child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            height: 40,
-                            width: 150,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: toogleSignature
-                                    ? Colors.greenAccent[100]
-                                    : Colors.redAccent[100].withOpacity(0.5)),
-                            child: Stack(
-                              children: [
-                                AnimatedPositioned(
-                                  duration: Duration(milliseconds: 500),
-                                  curve: Curves.easeIn,
-                                  top: 3.0,
-                                  left: toogleSignature ? 40.0 : 0,
-                                  right: toogleSignature ? 0 : 40,
-                                  child: InkWell(
-                                    onTap: toogleSignatureButton,
-                                    child: AnimatedSwitcher(
-                                        duration: Duration(milliseconds: 500),
-                                        transitionBuilder: (Widget child,
-                                            Animation<double> animation) {
-                                          return ScaleTransition(
-                                            child: child,
-                                            scale: animation,
-                                          );
-                                        },
-                                        child: Padding(
-                                            padding: EdgeInsets.only(
-                                                top: 2, left: 3),
-                                            child: toogleSignature
-                                                ? Icon(
-                                                    Icons.check_circle_outline,
-                                                    color: Colors.green,
-                                                    size: 30,
-                                                    key: Key("fdshfsj"),
-                                                  )
-                                                : Icon(
-                                                    Icons.remove_circle_outline,
-                                                    color: Colors.red,
-                                                    size: 30,
-                                                    key: Key("Dsddjkkkkhhgygfygy"),
-                                                  ))),
+                    padding: EdgeInsets.only(top: 300, left: 15),
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
                                   ),
-                                )
-                              ],
-                            ),
-                          )),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 270, right: 200, left: 15),
-                  child: Container(
-                    width: 150,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Color(4280824901)),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: 10, left: 7),
-                          child: Text(
-                            "Pass Pro.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 75),
-                          child: Center(
-                              child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            height: 40,
-                            width: 150,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: tooglePassword
-                                    ? Colors.greenAccent[100]
-                                    : Colors.redAccent[100].withOpacity(0.5)),
-                            child: Stack(
-                              children: [
-                                AnimatedPositioned(
-                                  duration: Duration(milliseconds: 500),
-                                  curve: Curves.easeIn,
-                                  top: 3.0,
-                                  left: tooglePassword ? 40.0 : 0,
-                                  right: tooglePassword ? 0 : 40,
-                                  child: InkWell(
-                                    onTap: tooglePasswordButton(),
-                                    child: AnimatedSwitcher(
-                                        duration: Duration(milliseconds: 500),
-                                        transitionBuilder: (Widget child,
-                                            Animation<double> animation) {
-                                          return ScaleTransition(
-                                            child: child,
-                                            scale: animation,
-                                          );
-                                        },
-                                        child: Padding(
-                                            padding: EdgeInsets.only(
-                                                top: 2, left: 3),
-                                            child: tooglePassword
-                                                ? Icon(
-                                                    Icons.check_circle_outline,
-                                                    color: Colors.green,
-                                                    size: 30,
-                                                    key: Key("DEWdsdddesfhakjnsakj"),
-                                                  )
-                                                : Icon(
-                                                    Icons.remove_circle_outline,
-                                                    color: Colors.red,
-                                                    size: 30,
-                                                    key: Key("Dedewdsds"),
-                                                  ))),
+                                ),
+                                title: Text('Set Passsword'),
+                                content: TextField(
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(4),
+                                  ],
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    password = '$value';
+                                  },
+                                  cursorColor: secondaryColor,
+                                  textCapitalization: TextCapitalization.words,
+                                  decoration: InputDecoration(
+                                    prefixStyle: TextStyle(color: Colors.white),
+                                    focusedBorder: UnderlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: secondaryColor)),
                                   ),
-                                )
-                              ],
-                            ),
-                          )),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 320, right: 200, left: 15),
-                  child: Container(
-                    width: 150,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Color(4280824901)),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: 10, left: 0),
-                          child: Text(
-                            "Watermark",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 75),
-                          child: Center(
-                              child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            height: 40,
-                            width: 150,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: toogleWater
-                                    ? Colors.greenAccent[100]
-                                    : Colors.redAccent[100].withOpacity(0.5)),
-                            child: Stack(
-                              children: [
-                                AnimatedPositioned(
-                                  duration: Duration(milliseconds: 500),
-                                  curve: Curves.easeIn,
-                                  top: 3.0,
-                                  left: toogleWater ? 40.0 : 0,
-                                  right: toogleWater ? 0 : 40,
-                                  child: InkWell(
-                                    onTap: toogleWaterButton(),
-                                    child: AnimatedSwitcher(
-                                        duration: Duration(milliseconds: 500),
-                                        transitionBuilder: (Widget child,
-                                            Animation<double> animation) {
-                                          return ScaleTransition(
-                                            child: child,
-                                            scale: animation,
-                                          );
-                                        },
-                                        child: Padding(
-                                            padding: EdgeInsets.only(
-                                                top: 2, left: 3),
-                                            child: toogleWater
-                                                ? Icon(
-                                                    Icons.check_circle_outline,
-                                                    color: Colors.green,
-                                                    size: 30,
-                                                    key: Key("fsfs"),
-                                                  )
-                                                : Icon(
-                                                    Icons.remove_circle_outline,
-                                                    color: Colors.red,
-                                                    size: 30,
-                                                    key: Key("dsdsdsd"),
-                                                  ))),
+                                ),
+                                actions: <Widget>[
+                                  FlatButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('Cancel'),
                                   ),
-                                )
-                              ],
-                            ),
-                          )),
+                                  FlatButton(
+                                    onPressed: () async {
+                                      savepass();
+
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      'Set Password',
+                                    ),
+                                  ),
+                                ],
+                              );
+                            });
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: 150,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(7),
+                          color: Colors.orange,
                         ),
-                      ],
-                    ),
-                  ),
-                ),
+                        child: Text(
+                          "Set Password",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                              color: Color(4280824901)),
+                        ),
+                      ),
+                    )),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(30),
                   child: Padding(
@@ -536,14 +313,16 @@ class _ViewDocumentState extends State<ViewDocument> {
                       height: 570,
                       width: 470,
                       child: FutureBuilder(
+                          key: UniqueKey(),
                           future: getDirectoryNames(),
                           builder:
                               (BuildContext context, AsyncSnapshot snapshot) {
                             return ListView.builder(
+                              key: UniqueKey(),
                               dragStartBehavior: DragStartBehavior.start,
                               scrollDirection: Axis.horizontal,
                               itemCount:
-                                  ((imageFilesWithDate.length) / 2).round(),
+                                  (imageFilesWithDate.length / 2).round(),
                               itemBuilder: (context, index) {
                                 folderName = imageDirectories[index]['path']
                                     .substring(
@@ -602,6 +381,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                               topRight: Radius.circular(30)),
                         ),
                         child: ListView.builder(
+                          key: UniqueKey(),
                           controller: myscrollController,
                           itemCount: 1,
                           itemBuilder: (BuildContext context, int index) {
@@ -620,10 +400,12 @@ class _ViewDocumentState extends State<ViewDocument> {
                                             Row(
                                               children: [
                                                 GestureDetector(
-                                                  onTap: () {
+                                                  onTap: () async {
                                                     showDialog(
                                                         context: context,
                                                         builder: (context) {
+                                                          bool _statusSuccess;
+
                                                           return AlertDialog(
                                                             shape:
                                                                 RoundedRectangleBorder(
@@ -678,7 +460,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                               FlatButton(
                                                                 onPressed:
                                                                     () async {
-                                                                  statusSuccess =
+                                                                  _statusSuccess =
                                                                       await fileOperations
                                                                           .saveToAppDirectory(
                                                                     context:
@@ -750,17 +532,16 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                 GestureDetector(
                                                   onTap: () async {
                                                     var image =
-                                                        await openCamera();
-
+                                                        await createImage();
+                                                    setState(() {});
                                                     await fileOperations
                                                         .saveImage(
-                                                      image: imageFile,
+                                                      image: image,
                                                       i: imageFilesWithDate
                                                               .length +
                                                           1,
                                                       dirName: dirName,
                                                     );
-
                                                     getImages();
                                                   },
                                                   child: Container(
@@ -805,164 +586,9 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                   width: 20,
                                                 ),
                                                 GestureDetector(
-                                                  onTap: () async {
-                                                    showDialog(
-                                                        context: context,
-                                                        builder: (context) {
-                                                          return AlertDialog(
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .all(
-                                                                Radius.circular(
-                                                                    10),
-                                                              ),
-                                                            ),
-                                                            title: Text(
-                                                                'Save To Device'),
-                                                            content: TextField(
-                                                              onChanged:
-                                                                  (value) {
-                                                                fileName =
-                                                                    '$value ScanIn';
-                                                              },
-                                                              controller: TextEditingController(
-                                                                  text: fileName
-                                                                      .substring(
-                                                                          8,
-                                                                          fileName
-                                                                              .length)),
-                                                              cursorColor:
-                                                                  secondaryColor,
-                                                              textCapitalization:
-                                                                  TextCapitalization
-                                                                      .words,
-                                                              decoration:
-                                                                  InputDecoration(
-                                                                prefixStyle: TextStyle(
-                                                                    color: Colors
-                                                                        .white),
-                                                                suffixText:
-                                                                    ' ScanIn.pdf',
-                                                                focusedBorder: UnderlineInputBorder(
-                                                                    borderSide:
-                                                                        BorderSide(
-                                                                            color:
-                                                                                secondaryColor)),
-                                                              ),
-                                                            ),
-                                                            actions: <Widget>[
-                                                              FlatButton(
-                                                                onPressed: () =>
-                                                                    Navigator.pop(
-                                                                        context),
-                                                                child: Text(
-                                                                    'Cancel'),
-                                                              ),
-                                                              FlatButton(
-                                                                onPressed:
-                                                                    () async {
-                                                                  String
-                                                                      savedDirectory;
-                                                                  savedDirectory =
-                                                                      await fileOperations
-                                                                          .saveToDevice(
-                                                                    context:
-                                                                        context,
-                                                                    fileName:
-                                                                        fileName,
-                                                                    images:
-                                                                        imageFilesWithDate,
-                                                                  );
-                                                                  String
-                                                                      displayText;
-                                                                  (savedDirectory !=
-                                                                          null)
-                                                                      ? displayText =
-                                                                          "Saved at $savedDirectory"
-                                                                      : displayText =
-                                                                          "Failed To Save PDF. Try Again.";
-
-                                                                  scaffoldKey.currentState.showSnackBar(SnackBar(
-                                                                      behavior: SnackBarBehavior.floating,
-                                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                                                                      backgroundColor: primaryColor,
-                                                                      duration: Duration(seconds: 1),
-                                                                      content: Container(
-                                                                        alignment:
-                                                                            Alignment.center,
-                                                                        height:
-                                                                            20,
-                                                                        width: size.width *
-                                                                            0.3,
-                                                                        child:
-                                                                            Text(
-                                                                          displayText,
-                                                                          style: TextStyle(
-                                                                              color: Color(4280824901),
-                                                                              fontSize: 12),
-                                                                        ),
-                                                                      )));
-
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                },
-                                                                child: Text(
-                                                                  'Save',
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        });
-                                                  },
-                                                  child: Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      width: 100,
-                                                      height: 100,
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(20),
-                                                          color: Color(
-                                                              4280824901)),
-                                                      child: Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                                  top: 17),
-                                                          child: Column(
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .file_download,
-                                                                size: 34,
-                                                                color: Colors
-                                                                    .orange,
-                                                              ),
-                                                              SizedBox(
-                                                                height: 7,
-                                                              ),
-                                                              Text(
-                                                                " Save to Device",
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold),
-                                                              )
-                                                            ],
-                                                          ))),
-                                                ),
-                                                SizedBox(
-                                                  width: 20,
-                                                ),
-                                                GestureDetector(
                                                   onTap: () {
                                                     ShareExtend.shareMultiple(
                                                         imageFilesPath, 'file');
-                                                    Navigator.pop(context);
                                                   },
                                                   child: Container(
                                                       alignment:
@@ -1020,9 +646,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                   10),
                                                             ),
                                                           ),
-                                                          title: Text(
-                                                            'Delete',
-                                                          ),
+                                                          title: Text('Delete'),
                                                           content: Text(
                                                               'Do you really want to delete file?'),
                                                           actions: <Widget>[
@@ -1040,14 +664,11 @@ class _ViewDocumentState extends State<ViewDocument> {
                                                                     .deleteSync(
                                                                         recursive:
                                                                             true);
-                                                                Navigator.pushAndRemoveUntil(
+                                                                Navigator.popUntil(
                                                                     context,
-                                                                    MaterialPageRoute(
-                                                                        builder:
-                                                                            (context) =>
-                                                                                DocIt()),
-                                                                    (route) =>
-                                                                        false);
+                                                                    ModalRoute
+                                                                        .withName(
+                                                                            DocIt.route));
                                                               },
                                                               child: Text(
                                                                 'Delete',
@@ -1113,7 +734,7 @@ class _ViewDocumentState extends State<ViewDocument> {
                       );
                     },
                   ),
-                ),
+                )
               ],
             )),
       ),
@@ -1134,3 +755,9 @@ String dirName;
 String fileName;
 
 bool statusSuccess;
+String password;
+String passkey = "_key_pass";
+Future<bool> savepass() async {
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  return await preferences.setString(passkey, password);
+}

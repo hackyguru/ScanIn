@@ -27,6 +27,17 @@ class FileOperations {
     }
   }
 
+  Future<File> openCamera() async {
+    File image;
+    final _picker = ImagePicker();
+    var picture = await _picker.getImage(source: ImageSource.camera);
+    if (picture != null) {
+      final requiredPicture = File(picture.path);
+      image = requiredPicture;
+    }
+    return image;
+  }
+
   // CREATE PDF
   Future<bool> createPdf({selectedDirectory, fileName, images}) async {
     try {
@@ -83,7 +94,7 @@ class FileOperations {
       BuildContext context, selectedDirectory) async {
     Directory directory = selectedDirectory;
     if (Platform.isAndroid) {
-      directory = Directory("/storage/emulated/0/ScanIn");
+      directory = Directory("/storage/emulated/0/");
       directory.createSync();
     } else {
       directory = await getExternalStorageDirectory();

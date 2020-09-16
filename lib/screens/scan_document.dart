@@ -1,8 +1,8 @@
 import 'dart:core';
 import 'dart:io';
 import 'dart:ui';
-import 'package:edge_detection/edge_detection.dart';
-import 'package:flutter/services.dart';
+
+import 'package:example/screens/home_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:focused_menu/focused_menu.dart';
@@ -10,9 +10,8 @@ import 'package:focused_menu/modals.dart';
 import 'package:example/Utilities/constants.dart';
 import 'package:example/Utilities/cropper.dart';
 import 'package:example/Utilities/file_operations.dart';
-import 'package:example/screens/home_screen.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'view_document.dart';
 
 class ScanDocument extends StatefulWidget {
@@ -23,23 +22,27 @@ class ScanDocument extends StatefulWidget {
 }
 
 class _ScanDocumentState extends State<ScanDocument> {
-  @override
-  void initState() {
-    super.initState();
-    createDirectoryName();
-    createImagefromcamera();
-  }
-
   FileOperations fileOperations = FileOperations();
+  File imageFile;
   List<File> imageFiles = [];
   String appPath;
   String docPath;
 
-  ///image=imagefile;
-  Future createImagefromcamera() async {
-    File image = await ImagePicker.pickImage(source: ImageSource.camera);
-    imageFiles.add(image);
+  @override
+  void initState() {
+    super.initState();
+    createDirectoryName();
+    createImage();
+  }
 
+  ///image=imagefile;
+  Future createImage() async {
+    File image = await fileOperations.openCamera();
+    if (image != null) {
+      Cropper cropper = Cropper();
+      var imageFile = await cropper.cropImage(image);
+      if (imageFile != null) imageFiles.add(imageFile);
+    }
     setState(() {});
   }
 
@@ -85,12 +88,10 @@ class _ScanDocumentState extends State<ScanDocument> {
                   ),
                 ),
                 FlatButton(
-                  onPressed: () => {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => Home()),
-                        (route) => false)
-                  },
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                      (route) => false),
                   child: Text(
                     'Discard',
                     style: TextStyle(color: Colors.redAccent),
@@ -135,7 +136,7 @@ class _ScanDocumentState extends State<ScanDocument> {
                 children: [
                   TextSpan(
                     text: 'Document',
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: secondaryColor),
                   ),
                 ],
               ),
@@ -153,6 +154,7 @@ class _ScanDocumentState extends State<ScanDocument> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
                       RaisedButton(
+                        elevation: 20,
                         color: primaryColor,
                         onPressed: () {},
                         child: FocusedMenuHolder(
@@ -228,16 +230,7 @@ class _ScanDocumentState extends State<ScanDocument> {
                             ),
                           ],
                           child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: 2,
-                                )),
-                            child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.file(imageFiles[index * 2],
-                                    fit: BoxFit.fill)),
+                            child: Image.file(imageFiles[index * 2]),
                             height: size.height * 0.25,
                             width: size.width * 0.4,
                           ),
@@ -320,22 +313,12 @@ class _ScanDocumentState extends State<ScanDocument> {
                               ),
                             ],
                             child: Container(
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                      width: 2, color: Colors.black)),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.file(
-                                  imageFiles[index * 2 + 1],
-                                  fit: BoxFit.fill,
-                                  height: size.height * 0.25,
-                                  width: size.width * 0.4,
-                                ),
-                              ),
+                              child: Image.file(imageFiles[index * 2 + 1]),
+                              height: size.height * 0.25,
+                              width: size.width * 0.4,
                             ),
                           ),
-                        )
+                        ),
                     ],
                   ),
                 );
@@ -352,7 +335,6 @@ class _ScanDocumentState extends State<ScanDocument> {
                         image: imageFiles[i], i: i + 1, dirName: docPath);
                   }
                 }
-
                 await fileOperations.deleteTemporaryFiles();
                 (imageFiles.length == 0)
                     ? Navigator.pop(context)
@@ -379,8 +361,8 @@ class _ScanDocumentState extends State<ScanDocument> {
           ),
           floatingActionButton: FloatingActionButton(
             backgroundColor: secondaryColor,
-            onPressed: () {
-              createImagefromcamera();
+            onPressed: () async {
+              await createImage();
             },
             child: Icon(Icons.add),
           ),

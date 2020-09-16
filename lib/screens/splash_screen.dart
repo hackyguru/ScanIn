@@ -49,9 +49,7 @@ class _ScrState extends State<Scr> {
               MaterialPageRoute(builder: (context) => Home()), (route) => false)
           : Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => GettingStartedScreen(
-                  showSkip: true,
-                ),
+                builder: (context) => MyApp(),
               ),
             );
     });
